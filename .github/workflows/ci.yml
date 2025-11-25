@@ -1,0 +1,23 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  lint:
+    name: Lint All Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Lint Action
+        uses: ./.github/actions/lint
+
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Run Docker Build Action
+        uses: ./.github/actions/docker-build

@@ -54,7 +54,7 @@ services:
       - dolorestec-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a $REDIS_PASSWORD --raw incr ping"]
+      test: ["CMD", "redis-cli", "--pass", "$REDIS_PASSWORD", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
