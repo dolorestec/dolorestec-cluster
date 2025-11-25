@@ -1,112 +1,142 @@
-# Dolorestec Cluster - Infra Docker Moderna
+# 🚀 Dolorestec Cluster
 
-Este projeto configura uma infraestrutura Docker completa e moderna para aplicações Dolorestec, incluindo PostgreSQL, Redis, RabbitMQ, OpenWebUI e GitHub Runner para CI/CD local.
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)](https://rabbitmq.com)
+[![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white)](https://ollama.ai)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/features/actions)
 
-## Serviços
+Uma infraestrutura Docker completa e moderna para aplicações Dolorestec, com PostgreSQL, Redis, RabbitMQ, Ollama e GitHub Runner para CI/CD local.
 
-- **PostgreSQL 18**: Banco de dados relacional usando imagem customizada `dlrs-postgres:v18`.
-- **Redis 8.0**: Cache e armazenamento de sessões usando imagem customizada `dlrs-redis:v8.0` com autenticação.
-- **RabbitMQ 4.0**: Message broker usando imagem customizada `dlrs-rabbitmq:v4.0` com management plugin.
-- **OpenWebUI v0.6.36**: Interface web para IA usando imagem customizada `dlrs-openwebui:v0.6.36`, integrada com PostgreSQL e Redis.
-- **GitHub Runner**: Runner local para CI/CD usando imagem customizada `dlrs-github-runner:latest`.
+## 📋 Visão Geral
 
-## Melhorias Implementadas
+Este projeto configura uma stack completa de serviços para desenvolvimento e produção:
 
-### ✅ Conformidade com Melhores Práticas Docker 2025
-- **Imagens Customizadas**: Prefixo `dlrs-` no Docker Hub com versionamento semântico
-- **Segurança**: Usuários não-root (exceto RabbitMQ que requer root), senhas via .env
-- **Healthchecks**: Verificações automatizadas para todos os serviços
-- **Restart Policies**: Configuração `unless-stopped` para reinício automático
-- **Dependências Condicionais**: Serviços só iniciam quando dependências estão saudáveis
-- **Rede Isolada**: Rede bridge dedicada para comunicação segura
-- **Volumes Nomeados**: Persistência de dados com volumes Docker
+- 🗄️ **PostgreSQL 18** - Banco de dados relacional robusto
+- 🔄 **Redis 8.0** - Cache e armazenamento de sessões de alta performance
+- 🐰 **RabbitMQ 4.0** - Message broker com management plugin
+- 🤖 **Ollama** - Servidor de modelos de IA local
+- 🏃 **GitHub Runner** - CI/CD local com GitHub Actions
+- 🌐 **Traefik v3.1** - Reverse proxy moderno e load balancer
 
-### 🔒 Segurança Aprimorada
-- **Secrets Management**: Variáveis de ambiente para credenciais sensíveis
-- **Non-root Containers**: Usuários dedicados para execução
-- **Vulnerability Scanning**: Trivy integrado no CI para detecção de vulnerabilidades
-- **SBOM**: Software Bill of Materials gerado automaticamente
-- **Provenance**: Attestations de build para rastreabilidade
+## ✨ Características
 
-### 🚀 CI/CD Automatizado
-- **GitHub Actions**: Pipeline completo para build e push de imagens
-- **Matrix Builds**: Build paralelo de todas as imagens customizadas
-- **Cache de Build**: Aceleração com GitHub Actions cache
-- **Security Scanning**: Upload automático de resultados para GitHub Security tab
-- **Multi-platform**: Suporte a múltiplas arquiteturas via Buildx
+### 🛡️ Segurança e Conformidade
+- ✅ Imagens customizadas com prefixo padronizado
+- ✅ Usuários não-root para execução segura
+- ✅ Secrets management via variáveis de ambiente
+- ✅ Healthchecks automatizados
+- ✅ Rede isolada com Docker bridge
+- ✅ Volumes nomeados para persistência
 
-### 📊 Monitoramento e Observabilidade
-- **Healthchecks**: Verificação contínua da saúde dos serviços
-- **Logs Centralizados**: Configuração de logging driver
-- **Métricas**: Preparado para integração com Prometheus/Grafana
+### 🚀 Performance e Escalabilidade
+- ⚡ Restart policies automáticas
+- 🔄 Dependências condicionais entre serviços
+- 📊 Monitoramento de saúde contínuo
+- 🏗️ Arquitetura preparada para produção
 
-## Pré-requisitos
+### 🔧 DevOps e CI/CD
+- 🤖 GitHub Actions Runner oficial
+- 🐳 Build automatizado de imagens
+- 🔍 Security scanning integrado
+- 📦 SBOM e provenance para rastreabilidade
 
-- Docker 24+
-- Docker Compose 3.9+
-- GitHub Repository com secrets configurados:
-  - `DOCKERHUB_USERNAME`: Nome de usuário do Docker Hub
-  - `DOCKERHUB_TOKEN`: Token de acesso do Docker Hub
+## 🏗️ Arquitetura
 
-## Como usar
+```mermaid
+graph TB
+    A[Traefik Reverse Proxy] --> B[RabbitMQ Management]
+    A --> C[PostgreSQL]
+    A --> D[Redis]
+    A --> E[Ollama API]
+    A --> F[Traefik Dashboard]
 
-1. **Configurar Secrets no GitHub**:
-   - Acesse Settings > Secrets and variables > Actions
-   - Adicione `DOCKERHUB_USERNAME` e `DOCKERHUB_TOKEN`
+    K[GitHub Runner] --> L[CI/CD Pipeline]
+```
 
-2. **Iniciar a Infraestrutura**:
+## 🚀 Início Rápido
+
+### Pré-requisitos
+- 🐳 Docker 24+
+- 🐳 Docker Compose 3.9+
+- 🔑 GitHub Repository com secrets configurados
+
+### Instalação
+
+1. **Clone o repositório**
+   ```bash
+   git clone https://github.com/dolorestec/dolorestec-cluster.git
+   cd dolorestec-cluster
+   ```
+
+2. **Configure as variáveis de ambiente**
+   ```bash
+   cp .env.example .env
+   # Edite o .env com suas configurações
+   ```
+
+3. **Configure o GitHub Runner (opcional)**
+   ```bash
+   ./setup-runner-token.sh SEU_TOKEN_AQUI
+   ```
+
+4. **Inicie a infraestrutura**
    ```bash
    docker-compose up -d
    ```
 
-3. **Verificar Status**:
+5. **Verifique o status**
    ```bash
    docker-compose ps
    ```
 
-4. **Acessar Serviços**:
-   - OpenWebUI: http://localhost:8080
-   - RabbitMQ Management: http://localhost:15672 (user: rabbitmq_user, pass: rabbitmq_secure_pass_789)
+## 📖 Documentação
 
-## CI/CD Pipeline
+### 🗄️ PostgreSQL
+- **Versão**: 18
+- **Porta**: 5432
+- **Database**: Configurável via `.env`
 
-O pipeline GitHub Actions executa automaticamente:
+### 🔄 Redis
+- **Versão**: 8.0
+- **Porta**: 6379
+- **Persistência**: AOF habilitado
 
-1. **Build**: Compila todas as imagens customizadas
-2. **Push**: Envia para Docker Hub com tags apropriadas
-3. **Security Scan**: Executa Trivy para detecção de vulnerabilidades
-4. **SBOM**: Gera Software Bill of Materials
-5. **Attestations**: Cria provenance para rastreabilidade
+### 🐰 RabbitMQ
+- **Versão**: 4.0
+- **Portas**: 5672 (AMQP), 15672 (Management)
+- **Management Plugin**: Habilitado
 
-### Triggers
-- Push para `main` com mudanças em `docker/` ou workflow
-- Pull requests para `main`
+### 🤖 Ollama
+- **API Port**: 11434
+- **Modelo Principal**: `qwen2.5-coder:1.5b` - Otimizado para análise de código e geração complexa
+- **GPU Support**: NVIDIA CUDA habilitado automaticamente
+- **Uso de Recursos**: Detecta GPUs NVIDIA via Container Toolkit
+- **Bancos de Dados**: Não utiliza (armazenamento local)
+- **Context Length**: 32768 tokens configurado
 
-### Imagens Geradas
-- `lucascantarelli/dlrs-postgres:v18`
-- `lucascantarelli/dlrs-redis:v8.0`
-- `lucascantarelli/dlrs-rabbitmq:v4.0`
-- `lucascantarelli/dlrs-openwebui:v0.6.36`
-- `lucascantarelli/dlrs-github-runner:latest`
+### 🏃 GitHub Runner
+- **Versão**: 2.330.0 (oficial)
+- **Configuração**: Automática via script
+- **CI/CD**: Pipelines locais
 
-## Desenvolvimento Local
+### 🌐 Traefik
+- **Versão**: v3.1
+- **Portas**: 80 (HTTP), 8081 (Dashboard)
+- **Configuração**: Labels dinâmicas
 
-### Build Manual das Imagens
+## 🔧 Desenvolvimento
+
+### Build Manual
 ```bash
-# PostgreSQL
-docker build -t dlrs-postgres:v18 ./docker/postgres
+# Construir todas as imagens
+docker-compose build
 
-# Redis
-docker build -t dlrs-redis:v8.0 ./docker/redis
-
-# RabbitMQ
-docker build -t dlrs-rabbitmq:v4.0 ./docker/rabbitmq
-
-# OpenWebUI
-docker build -t dlrs-openwebui:v0.6.36 ./docker/openwebui
-
-# GitHub Runner
-docker build -t dlrs-github-runner:latest ./docker/github-runner
+# Ou construir individualmente
+docker-compose build postgres
+docker-compose build redis
+# ... etc
 ```
 
 ### Testes
@@ -119,38 +149,275 @@ docker-compose up -d
 docker-compose ps
 ```
 
-## Volumes
+### Configuração GPU NVIDIA
+Para habilitar aceleração GPU no serviço Ollama:
 
-- `postgres_data`: Dados do PostgreSQL
-- `redis_data`: Dados do Redis
-- `rabbitmq_data`: Dados do RabbitMQ
-- `openwebui_data`: Configurações e dados do OpenWebUI
-- `github_runner_data`: Dados do GitHub Runner
+**Pré-requisitos:**
+- Drivers NVIDIA instalados no host
+- NVIDIA Container Toolkit configurado
 
-## Troubleshooting
+**Instalação no Arch Linux:**
+```bash
+# Instalar toolkit
+sudo pacman -S nvidia-container-toolkit
 
-### Problemas Comuns
-1. **GitHub Runner não conecta**: Verificar `GITHUB_RUNNER_TOKEN` no .env
-2. **RabbitMQ falha**: Remover USER não-root se necessário
-3. **Build falha**: Verificar logs do GitHub Actions
+# Configurar Docker daemon
+sudo mkdir -p /etc/docker
+echo '{"default-runtime": "nvidia", "runtimes": {"nvidia": {"path": "/usr/bin/nvidia-container-runtime", "runtimeArgs": []}}}' | sudo tee /etc/docker/daemon.json
 
-### Logs
+# Reiniciar Docker
+sudo systemctl restart docker
+```
+
+**Teste da configuração:**
+```bash
+# Testar acesso à GPU
+docker run --rm --gpus all ubuntu:20.04 nvidia-smi
+
+# Verificar detecção no Ollama
+docker-compose logs ollama | grep "inference compute"
+```
+
+**Status dos serviços:**
+- **Ollama**: Detecta GPU automaticamente (CUDA)
+
+### Modelos de IA Recomendados
+
+#### 🤖 Análise e Geração de Código
+```bash
+# Modelo principal: qwen2.5-coder:1.5b
+docker exec dlrs-ollama ollama run qwen2.5-coder:1.5b
+```
+- **Por quê?** Otimizado para análise profunda e geração de código complexo
+- **Tamanho**: 986MB (compatível com GPU MX150 2GB)
+- **Contexto**: 32K tokens configurado
+- **Capacidades**: Completion + Tools + Function Calling
+- **Hardware**: Funciona perfeitamente em laptops com GPU limitada
+
+### Logs e Debugging
 ```bash
 # Logs de todos os serviços
 docker-compose logs
 
 # Logs específicos
 docker-compose logs postgres
+docker-compose logs traefik
 ```
 
-## Roadmap
+## 📊 Monitoramento
 
-- [ ] Integração com Prometheus/Grafana
-- [ ] Backup automatizado dos volumes
-- [ ] Multi-platform builds (ARM64)
-- [ ] Testes automatizados das imagens
-- [ ] Configuração de resource limits
+### Healthchecks
+Todos os serviços incluem healthchecks automatizados:
+- PostgreSQL: Conexão ao banco
+- Redis: Comando PING
+- RabbitMQ: Diagnóstico de ping
+- Ollama: Lista de modelos
+- Traefik: API overview
+
+### Uso de Bancos de Dados
+**Ollama:**
+- **Modelo**: qwen2.5-coder:1.5b (986MB)
+- **GPU**: NVIDIA MX150 (2GB VRAM) - Uso otimizado
+- **Armazenamento Local**: Modelos e dados armazenados em volumes Docker
+- **Sem Dependência**: Não utiliza PostgreSQL ou Redis
+
+**RabbitMQ:**
+- **Message Broker**: Comunicação assíncrona entre serviços (se aplicável)
+
+### Traefik Dashboard
+Acesse o dashboard em `http://traefik.dolorestec.local` para visualizar:
+- Rotas ativas
+- Serviços upstream
+- Métricas de performance
+- Configuração dinâmica
+
+## 🔒 Segurança
+
+### Melhores Práticas Implementadas
+- 🛡️ **Non-root containers**: Todos os serviços rodam como usuários não-privilegiados
+- 🔐 **Secrets management**: Credenciais via variáveis de ambiente
+- 🌐 **Rede isolada**: Comunicação segura entre containers
+- 📊 **Vulnerability scanning**: Trivy integrado no CI/CD
+- 📦 **SBOM**: Software Bill of Materials gerado automaticamente
+
+### Configuração de Segurança
+- Headers de segurança no Traefik
+- Autenticação básica no dashboard
+- SSL/TLS preparado para produção
+- Rate limiting e proteção contra ataques
+
+## 🚀 CI/CD Pipeline
+
+### GitHub Actions
+O pipeline automatiza:
+1. 🏗️ **Build**: Compilação de todas as imagens customizadas
+2. 📤 **Push**: Upload para Docker Hub
+3. 🔍 **Security Scan**: Detecção de vulnerabilidades
+4. 📋 **SBOM**: Geração de Software Bill of Materials
+5. 🔗 **Provenance**: Attestações de build
+
+### Triggers
+- Push para `main` com mudanças em `docker/` ou workflow
+- Pull requests para `main`
+
+### Imagens Publicadas (padrão local)
+- `dolorestec/postgres:v0.1.0`
+- `dolorestec/redis:v0.1.0`
+- `dolorestec/rabbitmq:v0.1.0`
+- `dolorestec/github-runner:v0.1.0`
+- `dolorestec/ollama:v0.1.0`
+- `dolorestec/traefik:v0.1.0`
+
+### Usar Nexus local como registry
+Por padrão nesta infraestrutura as imagens internas são publicadas em um registry local (Sonatype Nexus) exposto via Traefik. Exemplo de fluxo para publicar uma imagem localmente:
+
+```bash
+# Fazer build e tag local
+docker build -t dolorestec/postgres:v0.1.0 ./docker/postgres
+
+# Fazer login no Nexus (substitua hostname/porta conforme sua configuração Traefik)
+docker login nexus.dolorestec.local -u <usuario> -p <senha>
+
+# Taggear para apontar ao registry (se necessário)
+docker tag dolorestec/postgres:v0.1.0 nexus.dolorestec.local/dolorestec/postgres:v0.1.0
+
+# Push para o Nexus
+docker push nexus.dolorestec.local/dolorestec/postgres:v0.1.0
+```
+
+Lembre-se de rotacionar a senha admin do Nexus e não commitar credenciais no repositório. Configure `~/.docker/config.json` e os secrets do CI para autenticação segura.
+
+### Repositórios criados no Nexus
+O script de inicialização criou os seguintes repositórios hospedados no Nexus:
+
+- `docker-hosted`
+- `npm-hosted`
+- `pypi-hosted`
+
+Exemplo de push para imagens Docker (HTTP path). Atenção: o Docker client pode exigir configuração de "insecure-registries" se não houver TLS:
+
+```bash
+# Tag local
+docker tag dolorestec/postgres:v0.1.0 nexus.dolorestec.local:8081/repository/docker-hosted/dolorestec/postgres:v0.1.0
+
+# Push (pode precisar de login e configuração insegura se sem TLS)
+docker login nexus.dolorestec.local:8081
+docker push nexus.dolorestec.local:8081/repository/docker-hosted/dolorestec/postgres:v0.1.0
+```
+
+Se preferir, configure o repositório Docker no Nexus para escutar em uma porta dedicada (ex.: 5000) e ajuste o Traefik para rotear TCP nessa porta — isso permite usar `nexus.dolorestec.local:5000` como registry padrão.
+
+## 🐛 Troubleshooting
+
+### Problemas Comuns
+
+#### GitHub Runner não conecta
+```bash
+# Verificar token
+docker-compose logs github-runner
+
+# Regenerar token
+./setup-runner-token.sh NOVO_TOKEN
+```
+
+#### RabbitMQ falha ao iniciar
+```bash
+# Verificar logs
+docker-compose logs rabbitmq
+
+# Resetar dados
+docker-compose down -v
+docker-compose up -d rabbitmq
+```
+
+#### Traefik não roteia corretamente
+```bash
+# Verificar configuração
+curl http://localhost:8081/api/http/routers
+
+# Verificar /etc/hosts
+cat /etc/hosts | grep dolorestec.local
+```
+
+### Comandos Úteis
+```bash
+# Status completo
+docker-compose ps
+
+# Reiniciar serviço específico
+docker-compose restart postgres
+
+# Limpar tudo
+docker-compose down -v --remove-orphans
+docker system prune -f
+```
+
+## 📚 Recursos Adicionais
+
+- [📖 Documentação Docker](https://docs.docker.com)
+- [🐘 PostgreSQL Docs](https://postgresql.org/docs)
+- [🔄 Redis Docs](https://redis.io/documentation)
+- [🐰 RabbitMQ Docs](https://rabbitmq.com/documentation)
+- [🤖 Ollama Docs](https://github.com/ollama/ollama)
+- [🌐 Traefik Docs](https://doc.traefik.io/traefik)
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+## 🙏 Agradecimentos
+
+- Equipe Dolorestec pela visão e suporte
+- Comunidade open source pelas ferramentas incríveis
+- Docker e GitHub pela plataforma excepcional
 
 ---
 
-**Mantido pela equipe Dolorestec** | Docker 2025 Best Practices Compliant
+**🚀 Mantido com ❤️ pela equipe Dolorestec** | *Docker 2025 Best Practices Compliant*
+
+---
+
+## 📦 Sonatype Nexus (Registry + PyPI + npm)
+
+Adicionamos um serviço opcional `nexus` para hospedar um registry Docker privado e repositórios `npm`/`PyPI`.
+
+Rápido resumo de uso:
+
+- Inicie o Nexus junto com a stack:
+
+```bash
+docker-compose up -d nexus
+```
+
+- Recupere a senha admin inicial (de dentro do container):
+
+```bash
+docker exec dolorestec-nexus cat /nexus-data/admin.password
+```
+
+- Proteja o Nexus com Basic Auth: gere um arquivo htpasswd (bcrypt) e coloque em `docker/traefik/dynamic/htpasswd`.
+   Veja `docker/traefik/dynamic/htpasswd.example` para instruções.
+
+- Inicialize repositórios úteis (docker-hosted, npm-hosted, pypi-hosted):
+
+```bash
+export NEXUS_URL=http://nexus.dolorestec.local:8081
+export NEXUS_USER=admin
+export NEXUS_PASS=$(docker exec dolorestec-nexus cat /nexus-data/admin.password)
+./scripts/nexus-init.sh
+```
+
+- Exemplos de configuração para CI/clients estão em `templates/` (ex.: `.npmrc.example`, `pip.conf.example`).
+
+Observações de segurança:
+- Não exponha o Nexus sem TLS e autenticação em ambientes públicos.
+- Faça backup regular de `nexus_data`.
+

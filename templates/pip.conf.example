@@ -1,0 +1,4 @@
+[global]
+index-url = http://nexus.dolorestec.local/repository/pypi-hosted/simple/
+[install]
+trusted-host = nexus.dolorestec.local

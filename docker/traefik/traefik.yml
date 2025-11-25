@@ -1,0 +1,15 @@
+# Traefik Configuration File
+api:
+  insecure: true
+  dashboard: true
+
+
+entryPoints:
+  web:
+    address: ":80"
+
+log:
+  level: INFO
+
+metrics: {}
+accessLog: {}
