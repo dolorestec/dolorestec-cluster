@@ -3,6 +3,7 @@ FROM rabbitmq:4.2.1-management-alpine
 LABEL maintainer="Dolorestec Team" \
       version="v4.0" \
       description="RabbitMQ custom image for Dolorestec"
+
 # Configurações customizadas
 COPY rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
 

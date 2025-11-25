@@ -10,4 +10,13 @@ LABEL version="latest"
 ENV OLLAMA_HOST=0.0.0.0
 ENV OLLAMA_PORT=11434
 
-CMD ["serve"]
+# Copiar modelfiles
+COPY modelfiles /opt/modelfiles
+
+# Criar script de entrada
+RUN mkdir -p /opt/scripts
+COPY entrypoint.sh /opt/scripts/entrypoint.sh
+RUN chmod +x /opt/scripts/entrypoint.sh
+
+# Comando padrão
+CMD ["/opt/scripts/entrypoint.sh"]
