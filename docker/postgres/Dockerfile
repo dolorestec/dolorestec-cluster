@@ -1,4 +1,4 @@
-FROM postgres:18-alpine
+FROM postgres:18.1-alpine
 
 LABEL maintainer="Dolorestec Team" \
       version="v18" \

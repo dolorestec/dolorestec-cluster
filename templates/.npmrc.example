@@ -1,5 +1,0 @@
-# Example .npmrc for publishing to Nexus
-# Replace <USERNAME> and <PASSWORD> with CI credentials or use token mechanism
-@your-scope:registry=http://nexus.dolorestec.local/repository/npm-hosted/
-//nexus.dolorestec.local/repository/npm-hosted/:_authToken=${NPM_TOKEN}
-registry=http://nexus.dolorestec.local/repository/npm-hosted/

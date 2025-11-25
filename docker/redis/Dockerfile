@@ -1,4 +1,4 @@
-FROM redis:8.0-alpine
+FROM redis:8.4.0-alpine
 
 LABEL maintainer="Dolorestec Team" \
       version="v8.0" \
@@ -10,5 +10,5 @@ COPY redis.conf /etc/redis/redis.conf
 # Expor porta
 EXPOSE 6379
 
-# Comando padrão
-CMD ["redis-server", "/etc/redis/redis.conf"]
+# Comando padrão com senha
+CMD ["sh", "-c", "redis-server /etc/redis/redis.conf --requirepass $REDIS_PASSWORD"]

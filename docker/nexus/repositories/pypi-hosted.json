@@ -1,0 +1,11 @@
+{
+  "name": "pypi-hosted",
+  "type": "hosted",
+  "format": "pypi",
+  "online": true,
+  "storage": {
+    "blobStoreName": "default",
+    "strictContentTypeValidation": true,
+    "writePolicy": "ALLOW"
+  }
+}

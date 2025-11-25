@@ -3,6 +3,10 @@ api:
   insecure: true
   dashboard: true
 
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: true
 
 entryPoints:
   web:
@@ -11,5 +15,4 @@ entryPoints:
 log:
   level: INFO
 
-metrics: {}
 accessLog: {}

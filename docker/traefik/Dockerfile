@@ -1,9 +1,8 @@
-FROM traefik:v3.1
+FROM traefik:v3.6.2
 
 # Labels para identificação
 LABEL maintainer="Dolorestec Team"
 LABEL description="Traefik Reverse Proxy - Custom Docker Image"
-LABEL version="v3.1"
 
 # Configurações padrão
 COPY traefik.yml /etc/traefik/traefik.yml

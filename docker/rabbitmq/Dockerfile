@@ -1,4 +1,4 @@
-FROM rabbitmq:4.0-management-alpine
+FROM rabbitmq:4.2.1-management-alpine
 
 LABEL maintainer="Dolorestec Team" \
       version="v4.0" \
