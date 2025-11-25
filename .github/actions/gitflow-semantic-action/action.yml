@@ -1,0 +1,27 @@
+name: 'Gitflow Semantic Action'
+description: 'Reusable action for semantic versioning and gitflow'
+inputs:
+  release-type:
+    description: 'Type of release (patch, minor, major)'
+    required: false
+    default: 'patch'
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    - name: Install semantic-release
+      run: npm install -g semantic-release @semantic-release/git @semantic-release/changelog
+      shell: bash
+    - name: Run semantic release
+      run: |
+        echo "Running semantic release for ${{ inputs.release-type }}"
+        # Configure semantic-release here
+        npx semantic-release --dry-run
+      shell: bash

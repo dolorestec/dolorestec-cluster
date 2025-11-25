@@ -1,167 +1,55 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
-    branches: [ develop, main ]
-  pull_request:
-    branches: [ develop, main ]
-
-permissions:
-  contents: write
-  pull-requests: write
+    branches:
+      - develop
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   lint:
-    name: Lint All Files
     runs-on: ubuntu-latest
-    steps:
-      - name: Run Lint Action
-        uses: ./.github/actions/lint
-
-  build:
-    name: Build Docker Images
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - name: Run Docker Build Action
-        uses: ./.github/actions/docker-build
-
-  release:
-    name: Semantic Release
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Run Lint
+        uses: ./.github/actions/lint-action
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          files: '**/*.sh'
 
-      - name: Setup Git
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-      - name: Get commit messages
-        id: commits
-        run: |
-          COMMITS=$(git log --oneline -n 10 ${{ github.event.before }}..${{ github.sha }})
-          echo "commits<<EOF" >> $GITHUB_OUTPUT
-          echo "$COMMITS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Determine release type
-        id: release_type
-        run: |
-          COMMITS="${{ steps.commits.outputs.commits }}"
-          
-          if echo "$COMMITS" | grep -q "BREAKING CHANGE\|major:"; then
-            echo "type=major" >> $GITHUB_OUTPUT
-          elif echo "$COMMITS" | grep -q "feat:"; then
-            echo "type=minor" >> $GITHUB_OUTPUT
-          elif echo "$COMMITS" | grep -q "fix:\|perf:"; then
-            echo "type=patch" >> $GITHUB_OUTPUT
-          else
-            echo "No release needed"
-            echo "skip=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Skip if no release
-        if: steps.release_type.outputs.skip == 'true'
-        run: echo "No conventional commit found, skipping release"
-
-      - name: Get current version
-        if: steps.release_type.outputs.skip != 'true'
-        id: version
-        run: |
-          CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Calculate new version
-        if: steps.release_type.outputs.skip != 'true'
-        id: new_version
-        run: |
-          CURRENT="${{ steps.version.outputs.current_version }}"
-          TYPE="${{ steps.release_type.outputs.type }}"
-          
-          VERSION="${CURRENT#v}"
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          
-          case $TYPE in
-            patch)
-              PATCH=$((PATCH + 1))
-              ;;
-            minor)
-              MINOR=$((MINOR + 1))
-              PATCH=0
-              ;;
-            major)
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-              ;;
-          esac
-          
-          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create release branch
-        if: steps.release_type.outputs.skip != 'true'
-        id: release_branch
-        run: |
-          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
-          RELEASE_BRANCH="release/${NEW_VERSION#v}"
-          git checkout -b "$RELEASE_BRANCH"
-          git push origin "$RELEASE_BRANCH"
-          echo "release_branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
-
-      - name: Create tag
-        if: steps.release_type.outputs.skip != 'true'
-        run: |
-          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
-          git tag "$NEW_VERSION"
-          git push origin "$NEW_VERSION"
-
-      - name: Create GitHub Release
-        if: steps.release_type.outputs.skip != 'true'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        service: [postgres, redis, rabbitmq, nexus, traefik, github-runner]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        uses: ./.github/actions/docker-build-action
         with:
-          tag_name: ${{ steps.new_version.outputs.new_version }}
-          release_name: Release ${{ steps.new_version.outputs.new_version }}
-          body: |
-            ## Changes
-            ${{ steps.commits.outputs.commits }}
-            
-            ## Version
-            ${{ steps.release_type.outputs.type }} release: ${{ steps.version.outputs.current_version }} → ${{ steps.new_version.outputs.new_version }}
-          draft: false
-          prerelease: false
+          dockerfile: docker/${{ matrix.service }}/Dockerfile
+          image-name: dolorestec/${{ matrix.service }}:v0.1.0
 
-      - name: Merge to main
-        if: steps.release_type.outputs.skip != 'true'
-        run: |
-          RELEASE_BRANCH="${{ steps.release_branch.outputs.release_branch }}"
-          
-          git checkout main
-          git merge "$RELEASE_BRANCH" --no-ff -m "Merge release $RELEASE_BRANCH"
-          git push origin main
-
-      - name: Merge to develop
-        if: steps.release_type.outputs.skip != 'true'
-        run: |
-          RELEASE_BRANCH="${{ steps.release_branch.outputs.release_branch }}"
-          
-          git checkout develop
-          git merge main --no-ff -m "Merge main after release"
-          git push origin develop
-
-      - name: Delete release branch
-        if: steps.release_type.outputs.skip != 'true'
-        run: |
-          RELEASE_BRANCH="${{ steps.release_branch.outputs.release_branch }}"
-          
-          git push origin --delete "$RELEASE_BRANCH"
-          git branch -d "$RELEASE_BRANCH"
+  gitflow-semantic:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run Gitflow Semantic
+        uses: ./.github/actions/gitflow-semantic-action
+        with:
+          release-type: ${{ github.event.inputs.release_type }}

@@ -1,0 +1,21 @@
+name: 'Docker Build Action'
+description: 'Reusable action for building Docker images'
+inputs:
+  dockerfile:
+    description: 'Path to Dockerfile'
+    required: true
+  context:
+    description: 'Build context'
+    required: false
+    default: '.'
+  image-name:
+    description: 'Image name'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Build Docker image
+      run: |
+        echo "Building Docker image: ${{ inputs.image-name }}"
+        docker build -f ${{ inputs.dockerfile }} -t ${{ inputs.image-name }} ${{ inputs.context }}
+      shell: bash
