@@ -124,14 +124,17 @@ services:
   github-runner-00:
     build: ./docker/github-runner
     image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-github-runner-00
+    container_name: dlrs-runner-00
     env_file:
       - .env
     environment:
-      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
       REPO_URL: ${REPO_URL}
       RUNNER_NAME: dlrs-runner-00
       RUNNER_WORKDIR: ${RUNNER_WORKDIR}
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     volumes:
       - github_runner_00_data:/home/runner/actions-runner
     networks:
@@ -147,11 +150,11 @@ services:
   github-runner-01:
     build: ./docker/github-runner
     image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-github-runner-01
+    container_name: dlrs-runner-01
     env_file:
       - .env
     environment:
-      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
       REPO_URL: ${REPO_URL}
       RUNNER_NAME: dlrs-runner-01
       RUNNER_WORKDIR: ${RUNNER_WORKDIR}
@@ -170,11 +173,11 @@ services:
   github-runner-02:
     build: ./docker/github-runner
     image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-github-runner-02
+    container_name: dlrs-runner-02
     env_file:
       - .env
     environment:
-      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
       REPO_URL: ${REPO_URL}
       RUNNER_NAME: dlrs-runner-02
       RUNNER_WORKDIR: ${RUNNER_WORKDIR}
@@ -193,11 +196,11 @@ services:
   github-runner-03:
     build: ./docker/github-runner
     image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-github-runner-03
+    container_name: dlrs-runner-03
     env_file:
       - .env
     environment:
-      RUNNER_TOKEN: ${RUNNER_TOKEN}
+      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
       REPO_URL: ${REPO_URL}
       RUNNER_NAME: dlrs-runner-03
       RUNNER_WORKDIR: ${RUNNER_WORKDIR}

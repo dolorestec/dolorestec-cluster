@@ -6,7 +6,7 @@ echo "🚀 Iniciando GitHub Actions Runner..."
 
 # Verificar se as variáveis necessárias estão definidas
 if [ -z "$RUNNER_TOKEN" ]; then
-    echo "❌ ERRO: RUNNER_TOKEN não definido"
+    echo "❌ ERRO: GITHUB_RUNNER_TOKEN não definido"
     exit 1
 fi
 
