@@ -1,0 +1,11 @@
+{
+  "name": "npm-hosted",
+  "type": "hosted",
+  "format": "npm",
+  "online": true,
+  "storage": {
+    "blobStoreName": "default",
+    "strictContentTypeValidation": true,
+    "writePolicy": "ALLOW"
+  }
+}

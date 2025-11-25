@@ -1,0 +1,30 @@
+# Environment variables
+.env
+
+# Virtual environments
+env/
+venv/
+.venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Distribution / packaging
+build/
+dist/
+
+# Log files
+*.log
+
+# Traefik dynamic configuration files
+htpasswd
+# Vscode settings
+.vscode/
+.settings/
+
+# Key
+id_ed25519

@@ -1,0 +1,286 @@
+services:
+  postgres:
+    build: ./docker/postgres
+    image: dolorestec/postgres:v0.1.0
+    container_name: dlrs-postgres
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "5432:5432"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.postgres.rule=Host(`postgres.dolorestec.local`)"
+      - "traefik.http.routers.postgres.entrypoints=web"
+      - "traefik.http.services.postgres.loadbalancer.server.port=5432"
+      - "traefik.http.middlewares.postgres-security.headers.customrequestheaders.X-Frame-Options=SAMEORIGIN"
+      - "traefik.http.middlewares.postgres-security.headers.customrequestheaders.X-XSS-Protection=1; mode=block"
+      - "traefik.http.middlewares.postgres-security.headers.customrequestheaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.postgres-security.headers.customrequestheaders.Referrer-Policy=no-referrer-when-downgrade"
+      - "traefik.http.routers.postgres.middlewares=postgres-security@docker"
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    build: ./docker/redis
+    image: dolorestec/redis:v0.1.0
+    container_name: dlrs-redis
+    privileged: true
+    env_file:
+      - .env
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.redis.rule=Host(`redis.dolorestec.local`)"
+      - "traefik.http.routers.redis.entrypoints=web"
+      - "traefik.http.services.redis.loadbalancer.server.port=6379"
+      - "traefik.http.middlewares.redis-security.headers.customrequestheaders.X-Frame-Options=SAMEORIGIN"
+      - "traefik.http.middlewares.redis-security.headers.customrequestheaders.X-XSS-Protection=1; mode=block"
+      - "traefik.http.middlewares.redis-security.headers.customrequestheaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.redis-security.headers.customrequestheaders.Referrer-Policy=no-referrer-when-downgrade"
+      - "traefik.http.routers.redis.middlewares=redis-security@docker"
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $REDIS_PASSWORD --raw incr ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  rabbitmq:
+    build: ./docker/rabbitmq
+    image: dolorestec/rabbitmq:v0.1.0
+    container_name: dlrs-rabbitmq
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.dolorestec.local`)"
+      - "traefik.http.routers.rabbitmq.entrypoints=web"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+      - "traefik.http.middlewares.rabbitmq-security.headers.customrequestheaders.X-Frame-Options=SAMEORIGIN"
+      - "traefik.http.middlewares.rabbitmq-security.headers.customrequestheaders.X-XSS-Protection=1; mode=block"
+      - "traefik.http.middlewares.rabbitmq-security.headers.customrequestheaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.rabbitmq-security.headers.customrequestheaders.Referrer-Policy=no-referrer-when-downgrade"
+      - "traefik.http.routers.rabbitmq.middlewares=rabbitmq-security@docker"
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+
+  github-runner-00:
+    build: ./docker/github-runner
+    image: dolorestec/github-runner:v0.1.0
+    container_name: dlrs-runner-00
+    env_file:
+      - .env
+    environment:
+      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
+      REPO_URL: ${REPO_URL}
+      RUNNER_NAME: dlrs-runner-00
+      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    volumes:
+      - github_runner_00_data:/home/runner/actions-runner
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q Runner.Listener || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  github-runner-01:
+    build: ./docker/github-runner
+    image: dolorestec/github-runner:v0.1.0
+    container_name: dlrs-runner-01
+    env_file:
+      - .env
+    environment:
+      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
+      REPO_URL: ${REPO_URL}
+      RUNNER_NAME: dlrs-runner-01
+      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
+    volumes:
+      - github_runner_01_data:/home/runner/actions-runner
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q Runner.Listener || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  github-runner-02:
+    build: ./docker/github-runner
+    image: dolorestec/github-runner:v0.1.0
+    container_name: dlrs-runner-02
+    env_file:
+      - .env
+    environment:
+      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
+      REPO_URL: ${REPO_URL}
+      RUNNER_NAME: dlrs-runner-02
+      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
+    volumes:
+      - github_runner_02_data:/home/runner/actions-runner
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q Runner.Listener || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  github-runner-03:
+    build: ./docker/github-runner
+    image: dolorestec/github-runner:v0.1.0
+    container_name: dlrs-runner-03
+    env_file:
+      - .env
+    environment:
+      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
+      REPO_URL: ${REPO_URL}
+      RUNNER_NAME: dlrs-runner-03
+      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
+    volumes:
+      - github_runner_03_data:/home/runner/actions-runner
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q Runner.Listener || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  nexus:
+    build: ./docker/nexus
+    image: dolorestec/nexus:v0.1.0
+    container_name: dlrs-nexus
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms1200m -Xmx1200m
+      - NEXUS_CONTEXT=/
+      - NEXUS_BASE_URL=http://nexus.dolorestec.local/
+    volumes:
+      - nexus_data:/nexus-data
+    ports:
+      - "8082:8081"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nexus.rule=Host(`nexus.dolorestec.local`)"
+      - "traefik.http.routers.nexus.entrypoints=web"
+      - "traefik.http.services.nexus.loadbalancer.server.port=8081"
+      - "traefik.http.middlewares.nexus-security.headers.customrequestheaders.X-Frame-Options=SAMEORIGIN"
+      - "traefik.http.middlewares.nexus-security.headers.customrequestheaders.X-XSS-Protection=1; mode=block"
+      - "traefik.http.middlewares.nexus-security.headers.customrequestheaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.nexus-security.headers.customrequestheaders.Referrer-Policy=no-referrer-when-downgrade"
+      - "traefik.http.routers.nexus.middlewares=nexus-security@docker"
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8081/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  traefik:
+    build: ./docker/traefik
+    image: dolorestec/traefik:v0.1.0
+    container_name: dlrs-traefik
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      nexus:
+        condition: service_healthy
+      github-runner-00:
+        condition: service_healthy
+    
+    command:
+      - "--api.insecure=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--log.level=DEBUG"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8081:8080"  # Traefik Dashboard
+    volumes:
+      - traefik_data:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.dolorestec.local`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.traefik-security.headers.customrequestheaders.X-Frame-Options=SAMEORIGIN"
+      - "traefik.http.middlewares.traefik-security.headers.customrequestheaders.X-XSS-Protection=1; mode=block"
+      - "traefik.http.middlewares.traefik-security.headers.customrequestheaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.traefik-security.headers.customrequestheaders.Referrer-Policy=no-referrer-when-downgrade"
+      - "traefik.http.routers.traefik.middlewares=traefik-security@docker"
+    networks:
+      - dolorestec-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/api/overview"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  github_runner_00_data:
+  github_runner_01_data:
+  github_runner_02_data:
+  github_runner_03_data:
+  nexus_data:
+  traefik_data:
+
+networks:
+  dolorestec-network:
+    driver: bridge
