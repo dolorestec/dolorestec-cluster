@@ -40,6 +40,7 @@ jobs:
         uses: ./.github/actions/docker-build-action
         with:
           dockerfile: docker/${{ matrix.service }}/Dockerfile
+          context: docker/${{ matrix.service }}
           image-name: dolorestec/${{ matrix.service }}:v0.1.0
 
   gitflow-semantic:
