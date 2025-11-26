@@ -16,7 +16,7 @@ runs:
       shell: bash
     - name: Run semantic release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ GITHUB_TOKEN }}
       run: |
         echo "Running semantic release"
         npx semantic-release
