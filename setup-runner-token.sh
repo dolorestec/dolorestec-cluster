@@ -38,4 +38,4 @@ docker exec dlrs-runner-00 ./config.sh \
     --replace
 
 echo "✅ Runner configurado!"
-echo "📊 Verifique logs: docker-compose logs github-runner-00"
+echo "📊 Verifique logs: docker-compose logs github-runner"

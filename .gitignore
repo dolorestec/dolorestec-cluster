@@ -26,6 +26,3 @@ htpasswd
 # Vscode settings
 .vscode/
 .settings/
-
-# Key
-id_ed25519

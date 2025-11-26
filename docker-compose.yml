@@ -94,93 +94,22 @@ services:
       retries: 3
       start_period: 30s
 
-
-  github-runner-00:
+  github-runner:
     build: ./docker/github-runner
     image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-runner-00
+    container_name: dlrs-runner
     env_file:
       - .env
     environment:
       RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
       REPO_URL: ${REPO_URL}
-      RUNNER_NAME: dlrs-runner-00
+      RUNNER_NAME: dlrs-runner
       RUNNER_WORKDIR: ${RUNNER_WORKDIR}
     dns:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      - github_runner_00_data:/home/runner/actions-runner
-    networks:
-      - dolorestec-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep -q Runner.Listener || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  github-runner-01:
-    build: ./docker/github-runner
-    image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-runner-01
-    env_file:
-      - .env
-    environment:
-      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
-      REPO_URL: ${REPO_URL}
-      RUNNER_NAME: dlrs-runner-01
-      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
-      GITHUB_PAT: ${GITHUB_PAT}
-    volumes:
-      - github_runner_01_data:/home/runner/actions-runner
-    networks:
-      - dolorestec-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep -q Runner.Listener || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  github-runner-02:
-    build: ./docker/github-runner
-    image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-runner-02
-    env_file:
-      - .env
-    environment:
-      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
-      REPO_URL: ${REPO_URL}
-      RUNNER_NAME: dlrs-runner-02
-      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
-    volumes:
-      - github_runner_02_data:/home/runner/actions-runner
-    networks:
-      - dolorestec-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep -q Runner.Listener || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  github-runner-03:
-    build: ./docker/github-runner
-    image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-runner-03
-    env_file:
-      - .env
-    environment:
-      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
-      REPO_URL: ${REPO_URL}
-      RUNNER_NAME: dlrs-runner-03
-      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
-    volumes:
-      - github_runner_03_data:/home/runner/actions-runner
+      - github_runner_data:/home/runner/actions-runner
     networks:
       - dolorestec-network
     restart: unless-stopped
@@ -236,7 +165,7 @@ services:
         condition: service_healthy
       nexus:
         condition: service_healthy
-      github-runner-00:
+      github-runner:
         condition: service_healthy
     
     command:
@@ -275,10 +204,7 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
-  github_runner_00_data:
-  github_runner_01_data:
-  github_runner_02_data:
-  github_runner_03_data:
+  github_runner_data:
   nexus_data:
   traefik_data:
 

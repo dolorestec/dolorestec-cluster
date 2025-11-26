@@ -6,7 +6,7 @@ LABEL maintainer="Dolorestec Team" \
 
 # Instalar dependências necessárias
 RUN apt-get update && \
-    apt-get install -y curl tar jq coreutils && \
+    apt-get install -y curl tar jq coreutils git docker.io && \
     rm -rf /var/lib/apt/lists/*
 
 # Criar usuário runner
