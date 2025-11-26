@@ -4,15 +4,45 @@ set -e
 # Script de entrada para o GitHub Actions Runner
 echo "🚀 Iniciando GitHub Actions Runner..."
 
-# Verificar se as variáveis necessárias estão definidas
-if [ -z "$RUNNER_TOKEN" ]; then
-    echo "❌ ERRO: GITHUB_RUNNER_TOKEN não definido"
-    exit 1
-fi
+# Função para gerar token de registro
+generate_token() {
+    local pat="$1"
+    local repo_url="$2"
+    echo "🔄 Gerando registration token..."
+    
+    response=$(curl -s -H "Authorization: token $pat" \
+                   -H "Accept: application/vnd.github.v3+json" \
+                   -X POST \
+                   "$repo_url/actions/runners/registration-token")
+    
+    if echo "$response" | grep -q '"token"'; then
+        token=$(echo "$response" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+        echo "$token"
+    else
+        echo "❌ Falha ao gerar token: $response"
+        return 1
+    fi
+}
 
+# Verificar se as variáveis necessárias estão definidas
 if [ -z "$REPO_URL" ]; then
     echo "❌ ERRO: REPO_URL não definido"
     exit 1
+fi
+
+# Se RUNNER_TOKEN não definido, tentar gerar com GITHUB_PAT
+if [ -z "$RUNNER_TOKEN" ]; then
+    if [ -n "$GITHUB_PAT" ]; then
+        RUNNER_TOKEN=$(generate_token "$GITHUB_PAT" "$REPO_URL")
+        if [ -z "$RUNNER_TOKEN" ]; then
+            echo "❌ Falha ao gerar token"
+            exit 1
+        fi
+        echo "✅ Token gerado com sucesso"
+    else
+        echo "❌ ERRO: RUNNER_TOKEN ou GITHUB_PAT não definido"
+        exit 1
+    fi
 fi
 
 # Garantir que estamos no diretório do runner (WORKDIR na imagem é /home/runner/actions-runner)
