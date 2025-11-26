@@ -2,7 +2,6 @@ name: CI - Build & Smoke Test
 
 on:
   push:
-    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
@@ -11,7 +10,7 @@ permissions:
 
 jobs:
   build-and-push:
-    uses: ./.github/workflows/docker/build-and-push.yml
+    uses: ./.github/workflows/build-and-push.yml
     with:
       image: ghcr.io/${{ github.repository_owner }}/github-runner
       tags: ${{ github.ref_name }}-${{ github.sha }}
