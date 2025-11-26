@@ -359,3 +359,4 @@ Observações de segurança:
 - Faça backup regular de `nexus_data`.
 
 # CI Test
+# Test CI with Docker
