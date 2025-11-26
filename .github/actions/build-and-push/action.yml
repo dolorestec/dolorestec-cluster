@@ -56,6 +56,14 @@ runs:
         docker buildx inspect buildx_builder >/dev/null 2>&1 || docker buildx create --name buildx_builder --use
         docker buildx use buildx_builder
 
+    - name: Set up Docker context for DinD
+      shell: bash
+      run: |
+        set -e
+        # Create Docker context for DinD with TLS certificates
+        docker context create dind-context --docker "host=tcp://docker-dind:2376,ca=/certs/client/ca.pem,cert=/certs/client/cert.pem,key=/certs/client/key.pem" || true
+        docker context use dind-context
+
     - name: Login to registry (if credentials provided)
       if: ${{ inputs.registry_password != '' }}
       shell: bash
