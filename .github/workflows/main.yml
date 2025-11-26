@@ -1,5 +1,9 @@
 name: Main Pipeline
 
+permissions:
+  contents: read
+  packages: write
+
 on:
   push:
     branches:
@@ -7,39 +11,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker-build:
-    runs-on: self-hosted
-    needs: version-check
-    strategy:
-      matrix:
-        service: [postgres, redis, rabbitmq, nexus, traefik, github-runner]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Build and push Docker image
-        uses: ./.github/actions/docker-build-action
-        with:
-          dockerfile: docker/${{ matrix.service }}/Dockerfile
-          context: docker/${{ matrix.service }}
-          image-name: dolorestec/${{ matrix.service }}
-          version: ${{ needs.version-check.outputs.next-version }}
-          username: ${{ secrets.NEXUS_USERNAME }}
-          password: ${{ secrets.NEXUS_PASSWORD }}
-
-  test:
-    runs-on: self-hosted
-    needs: [docker-build, version-check]
-    strategy:
-      matrix:
-        service: [postgres, redis, rabbitmq, nexus, traefik, github-runner]
-    steps:
-      - name: Test container health
-        run: |
-          IMAGE=dlrs-nexus:8081/repository/docker-hosted/dolorestec/${{ matrix.service }}:${{ needs.version-check.outputs.next-version }}
-          echo "Testing $IMAGE"
-          # Add service-specific tests here, e.g., for postgres: docker run --rm $IMAGE pg_isready -h localhost
-          docker run --rm $IMAGE echo "Container started successfully"
-
   version-check:
     runs-on: self-hosted
     outputs:
@@ -60,9 +31,42 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NEXT_VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
+          NEXT_VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \\K[0-9]+\.[0-9]+\.[0-9]+')
           echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
           echo "Next version: $NEXT_VERSION"
+
+  docker-build:
+    runs-on: self-hosted
+    needs: version-check
+    strategy:
+      matrix:
+        service: [postgres, redis, rabbitmq, traefik, github-runner]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build and push Docker image
+        uses: ./.github/actions/docker-build-action
+        with:
+          dockerfile: docker/${{ matrix.service }}/Dockerfile
+          context: docker/${{ matrix.service }}
+          image-name: dolorestec/${{ matrix.service }}
+          version: ${{ needs.version-check.outputs.next-version }}
+          registry: ghcr.io/${{ github.repository_owner }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    runs-on: self-hosted
+    needs: [docker-build, version-check]
+    strategy:
+      matrix:
+        service: [postgres, redis, rabbitmq, traefik, github-runner]
+    steps:
+      - name: Test container health
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/dolorestec/${{ matrix.service }}:${{ needs.version-check.outputs.next-version }}
+          echo "Testing $IMAGE"
+          docker run --rm $IMAGE echo "Container started successfully"
 
   gitflow-semantic:
     runs-on: self-hosted

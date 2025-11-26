@@ -17,7 +17,7 @@ Este projeto configura uma stack completa de serviços para desenvolvimento e pr
 - 🐰 **RabbitMQ 4.0** - Message broker com management plugin
 - 🏃 **GitHub Runner** - CI/CD local com GitHub Actions
 - 🌐 **Traefik v3.1** - Reverse proxy moderno e load balancer
-- 📦 **Nexus Repository** - Gerenciamento de artefatos (Docker, NPM, PyPI)
+   - 📦 **Registry** - GitHub Packages (GHCR) para imagens Docker internas
 
 ## ✨ Características
 
@@ -36,29 +36,29 @@ Este projeto configura uma stack completa de serviços para desenvolvimento e pr
 - 🏗️ Arquitetura preparada para produção
 
 ### 🔧 DevOps e CI/CD
-- 🤖 GitHub Actions Runner oficial
-- 🐳 Build automatizado de imagens
-- 🔍 Security scanning integrado
-- 📦 SBOM e provenance para rastreabilidade
-- 🏭 Nexus para repositório de artefatos
+   - 🤖 GitHub Actions Runner oficial
+   - 🐳 Build automatizado de imagens
+   - 🔍 Security scanning integrado
+   - 📦 SBOM e provenance para rastreabilidade
+   - 📦 Imagens publicadas em GitHub Container Registry (GHCR)
 
-## 🔧 Configuração do Nexus
+## 🔧 Publicação de Imagens (GHCR)
 
-### Secrets do GitHub
-Para usar o Nexus local como registry Docker, configure os seguintes secrets no repositório GitHub:
+Este projeto usa o GitHub Container Registry (GHCR) para hospedagem de imagens Docker internas. Para permitir publish via `GITHUB_TOKEN`:
 
-- `NEXUS_USERNAME`: Usuário admin do Nexus
-- `NEXUS_PASSWORD`: Senha do usuário admin
+- Em `Settings` → `Actions` do repositório, habilite `Read and write permissions` para o `GITHUB_TOKEN`.
+- Em `Settings` → `Packages`, confirme permissões de publicação para workflows.
 
-**Nota**: Para push local, o Docker pode precisar de configuração para aceitar registry inseguro se não usar HTTPS. Adicione ao `/etc/docker/daemon.json`:
-```json
-{
-  "insecure-registries": ["nexus.dolorestec.local"]
-}
+Exemplo de login e push:
+
+```bash
+# Login (usando PAT) — em CI usamos ${{ secrets.GITHUB_TOKEN }} automaticamente
+echo $PAT | docker login ghcr.io -u $USER --password-stdin
+
+# Tag e push
+docker tag dolorestec/postgres:v0.1.0 ghcr.io/<OWNER>/dolorestec/postgres:v0.1.0
+docker push ghcr.io/<OWNER>/dolorestec/postgres:v0.1.0
 ```
-
-### Exemplo de Workflow
-O CI principal (`main.yml`) já está configurado para usar a action com o Nexus local. Ele faz build e push automático de todas as imagens Docker para o registry local.
 
 ## 🏗️ Arquitetura
 
@@ -89,7 +89,7 @@ graph TB
    A[Traefik Reverse Proxy] --> B[RabbitMQ Management]
    A --> C[PostgreSQL]
    A --> D[Redis]
-   A --> E[Nexus Repository]
+   A --> E[Registry]
    A --> F[Traefik Dashboard]
 
     K[GitHub Runner] --> L[CI/CD Pipeline]
@@ -250,44 +250,24 @@ O pipeline automatiza:
 - `dolorestec/github-runner:v0.1.0`
 - `dolorestec/traefik:v0.1.0`
 
-### Usar Nexus local como registry
-Por padrão nesta infraestrutura as imagens internas são publicadas em um registry local (Sonatype Nexus) exposto via Traefik. Exemplo de fluxo para publicar uma imagem localmente:
+### Publicação de Imagens (GHCR)
+
+Por padrão nesta infraestrutura as imagens internas são publicadas no GitHub Container Registry (GHCR). Use `GITHUB_TOKEN` em workflows para publicar automaticamente. Passos resumidos para publicar manualmente:
 
 ```bash
 # Fazer build e tag local
 docker build -t dolorestec/postgres:v0.1.0 ./docker/postgres
 
-# Fazer login no Nexus (substitua hostname/porta conforme sua configuração Traefik)
-docker login nexus.dolorestec.local -u <usuario> -p <senha>
+# Login (usando PAT localmente) — em CI usamos ${{ secrets.GITHUB_TOKEN }} automaticamente
+echo $PAT | docker login ghcr.io -u $USER --password-stdin
 
-# Taggear para apontar ao registry (se necessário)
-docker tag dolorestec/postgres:v0.1.0 nexus.dolorestec.local/dolorestec/postgres:v0.1.0
-
-# Push para o Nexus
-docker push nexus.dolorestec.local/dolorestec/postgres:v0.1.0
+# Tag e push
+docker tag dolorestec/postgres:v0.1.0 ghcr.io/<OWNER>/dolorestec/postgres:v0.1.0
+docker push ghcr.io/<OWNER>/dolorestec/postgres:v0.1.0
 ```
 
-Lembre-se de rotacionar a senha admin do Nexus e não commitar credenciais no repositório. Configure `~/.docker/config.json` e os secrets do CI para autenticação segura.
-
-### Repositórios criados no Nexus
-O script de inicialização criou os seguintes repositórios hospedados no Nexus:
-
-- `docker-hosted`
-- `npm-hosted`
-- `pypi-hosted`
-
-Exemplo de push para imagens Docker (HTTP path). Atenção: o Docker client pode exigir configuração de "insecure-registries" se não houver TLS:
-
-```bash
-# Tag local
-docker tag dolorestec/postgres:v0.1.0 nexus.dolorestec.local:8081/repository/docker-hosted/dolorestec/postgres:v0.1.0
-
-# Push (pode precisar de login e configuração insegura se sem TLS)
-docker login nexus.dolorestec.local:8081
-docker push nexus.dolorestec.local:8081/repository/docker-hosted/dolorestec/postgres:v0.1.0
-```
-
-Se preferir, configure o repositório Docker no Nexus para escutar em uma porta dedicada (ex.: 5000) e ajuste o Traefik para rotear TCP nessa porta — isso permite usar `nexus.dolorestec.local:5000` como registry padrão.
+### Registro de pacotes e repositórios
+Para pacotes npm/PyPI e repositórios privados, prefira usar os registries oficiais (npm registry, PyPI) ou publicar pacotes privados via GitHub Packages.
 
 ## 🐛 Troubleshooting
 
@@ -366,41 +346,6 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ---
 
-## 📦 Sonatype Nexus (Registry + PyPI + npm)
-
-Adicionamos um serviço opcional `nexus` para hospedar um registry Docker privado e repositórios `npm`/`PyPI`.
-
-Rápido resumo de uso:
-
-- Inicie o Nexus junto com a stack:
-
-```bash
-docker-compose up -d nexus
-```
-
-- Recupere a senha admin inicial (de dentro do container):
-
-```bash
-docker exec dolorestec-nexus cat /nexus-data/admin.password
-```
-
-- Proteja o Nexus com Basic Auth: gere um arquivo htpasswd (bcrypt) e coloque em `docker/traefik/dynamic/htpasswd`.
-   Veja `docker/traefik/dynamic/htpasswd.example` para instruções.
-
-- Inicialize repositórios úteis (docker-hosted, npm-hosted, pypi-hosted):
-
-```bash
-export NEXUS_URL=http://nexus.dolorestec.local:8081
-export NEXUS_USER=admin
-export NEXUS_PASS=$(docker exec dolorestec-nexus cat /nexus-data/admin.password)
-./scripts/nexus-init.sh
-```
-
-- Exemplos de configuração para CI/clients estão em `templates/` (ex.: `.npmrc.example`, `pip.conf.example`).
-
-Observações de segurança:
-- Não exponha o Nexus sem TLS e autenticação em ambientes públicos.
-- Faça backup regular de `nexus_data`.
 
 # CI Test
 # Test CI with Docker
