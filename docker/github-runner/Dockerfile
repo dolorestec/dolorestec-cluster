@@ -71,6 +71,12 @@ ARG ENTRYPOINT_SRC=entrypoint.sh
 COPY --chown=runner:runner ${ENTRYPOINT_SRC} /opt/runner-scripts/entrypoint.sh
 RUN chmod +x /opt/runner-scripts/entrypoint.sh && chown runner:runner /opt/runner-scripts/entrypoint.sh
 
+# Instalar dependências do runner (ex: libicu para .NET 6) no estágio final
+# Executa o script fornecido pelo próprio actions-runner que invoca apt-get
+# para garantir que o runtime .NET não reclame durante o registro.
+RUN if [ -x /home/runner/actions-runner/bin/installdependencies.sh ]; then \
+            /home/runner/actions-runner/bin/installdependencies.sh; \
+        fi
 # Não incluir tokens ou secrets no build — entrypoint deve lidar com registre do token via variável/secret
 USER runner
 

@@ -10,14 +10,21 @@ permissions:
 
 jobs:
   build-and-push:
-    uses: ./.github/workflows/build-and-push.yml
-    with:
-      image: ghcr.io/${{ github.repository_owner }}/github-runner
-      tags: ${{ github.ref_name }}-${{ github.sha }}
-      context: docker/github-runner
-      dockerfile: docker/github-runner/Dockerfile
-      entrypoint: entrypoint.sh
-      push: true
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Build and push image (local action)
+        uses: ./.github/actions/build-and-push
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/github-runner
+          tags: ${{ github.ref_name }}-${{ github.sha }}
+          context: docker/github-runner
+          dockerfile: docker/github-runner/Dockerfile
+          entrypoint: entrypoint.sh
+          push: true
+          registry: ghcr.io
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
+          platforms: linux/amd64,linux/arm64
 
   smoke-test:
     needs: build-and-push

@@ -19,6 +19,12 @@ if [ -n "$GITHUB_TOKEN" ]; then
     
     echo "⚙️  Configurando runner..."
     cd /home/runner/actions-runner || true
+    # Se já existir uma configuração prévia, remova-a antes de reconfigurar.
+    # Isso evita a mensagem: "Cannot configure the runner because it is already configured"
+    if [ -x ./config.sh ]; then
+        ./config.sh remove || true
+    fi
+
     ./config.sh \
         --unattended \
         --url "${REPO_URL:-https://github.com/dolorestec/dolorestec-cluster}" \
