@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build and push ${{ matrix.service }}
-        uses: dolorestec/dolorestec-actions/docker-build-push@main
+        uses: dolorestec/dolorestec-actions/docker-build-push@v0.1.0
         with:
           image-name: ${{ matrix.service }}
           context: docker/${{ matrix.service }}
