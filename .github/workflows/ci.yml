@@ -58,6 +58,8 @@ jobs:
         run: npm install -g semantic-release @semantic-release/git @semantic-release/changelog
       - name: Determine next version
         id: get-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           NEXT_VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
           echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT

@@ -15,6 +15,8 @@ runs:
       run: npm install -g semantic-release @semantic-release/git @semantic-release/changelog
       shell: bash
     - name: Run semantic release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "Running semantic release"
         npx semantic-release
