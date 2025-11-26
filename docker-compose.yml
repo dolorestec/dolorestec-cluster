@@ -106,7 +106,6 @@ services:
       REPO_URL: ${REPO_URL}
       RUNNER_NAME: dlrs-runner-00
       RUNNER_WORKDIR: ${RUNNER_WORKDIR}
-      GITHUB_PAT: ${GITHUB_PAT}
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -157,7 +156,6 @@ services:
       REPO_URL: ${REPO_URL}
       RUNNER_NAME: dlrs-runner-02
       RUNNER_WORKDIR: ${RUNNER_WORKDIR}
-      GITHUB_PAT: ${GITHUB_PAT}
     volumes:
       - github_runner_02_data:/home/runner/actions-runner
     networks:
@@ -181,7 +179,6 @@ services:
       REPO_URL: ${REPO_URL}
       RUNNER_NAME: dlrs-runner-03
       RUNNER_WORKDIR: ${RUNNER_WORKDIR}
-      GITHUB_PAT: ${GITHUB_PAT}
     volumes:
       - github_runner_03_data:/home/runner/actions-runner
     networks:
