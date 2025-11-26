@@ -18,10 +18,10 @@ inputs:
     description: 'Registry host (e.g. ghcr.io/<owner>)'
     required: true
   username:
-    description: 'Registry username (e.g. ${{ github.actor }})'
+    description: 'Registry username (for example: github actor username)'
     required: true
   password:
-    description: 'Registry password (e.g. ${{ secrets.GITHUB_TOKEN }})'
+    description: 'Registry password (for example: repository secret or GITHUB_TOKEN)'
     required: true
 
 runs:
