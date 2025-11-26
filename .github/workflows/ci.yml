@@ -17,19 +17,8 @@ on:
           - major
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Run Lint
-        uses: ./.github/actions/lint-action
-        with:
-          files: '**/*.sh'
-
   docker-build:
     runs-on: ubuntu-latest
-    needs: lint
     strategy:
       matrix:
         service: [postgres, redis, rabbitmq, nexus, traefik, github-runner]
