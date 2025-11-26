@@ -23,6 +23,8 @@ jobs:
           context: docker/${{ matrix.service }}
           image-name: dolorestec/${{ matrix.service }}
           version: ${{ needs.version-check.outputs.next-version }}
+          username: ${{ secrets.NEXUS_USERNAME }}
+          password: ${{ secrets.NEXUS_PASSWORD }}
 
   test:
     runs-on: self-hosted
