@@ -27,6 +27,17 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Validate inputs
+      run: |
+        if [ -z """${{ inputs.registry }}""" ]; then
+          echo "ERROR: 'registry' input is empty. Provide 'registry' to the action." >&2
+          exit 1
+        fi
+        if [ -z """${{ inputs.username }}""" ]; then
+          echo "ERROR: 'username' input is empty." >&2
+          exit 1
+        fi
+      shell: bash
     - name: Login to registry
       run: |
         echo "Logging into ${{ inputs.registry }}"

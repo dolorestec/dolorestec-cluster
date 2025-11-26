@@ -6,6 +6,10 @@ on:
       - develop
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   version-check:
     runs-on: self-hosted
@@ -36,7 +40,7 @@ jobs:
     needs: version-check
     strategy:
       matrix:
-        service: [postgres, redis, rabbitmq, nexus, traefik, github-runner]
+        service: [postgres, redis, rabbitmq, traefik, github-runner]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -47,8 +51,9 @@ jobs:
           context: docker/${{ matrix.service }}
           image-name: dolorestec/${{ matrix.service }}
           version: ${{ needs.version-check.outputs.next-version }}
-          username: ${{ secrets.NEXUS_USERNAME }}
-          password: ${{ secrets.NEXUS_PASSWORD }}
+          registry: ghcr.io/${{ github.repository_owner }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
           
   gitflow-semantic:
     runs-on: self-hosted
