@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Main Pipeline
 
 on:
   push:
@@ -23,20 +23,17 @@ jobs:
           context: docker/${{ matrix.service }}
           image-name: dolorestec/${{ matrix.service }}
           version: ${{ needs.version-check.outputs.next-version }}
-          registry: ${{ secrets.NEXUS_URL }}
-          username: ${{ secrets.NEXUS_USERNAME }}
-          password: ${{ secrets.NEXUS_PASSWORD }}
 
   test:
     runs-on: self-hosted
-    needs: docker-build
+    needs: [docker-build, version-check]
     strategy:
       matrix:
         service: [postgres, redis, rabbitmq, nexus, traefik, github-runner]
     steps:
       - name: Test container health
         run: |
-          IMAGE=${{ secrets.NEXUS_URL }}/dolorestec/${{ matrix.service }}:${{ needs.version-check.outputs.next-version }}
+          IMAGE=nexus.dolorestec.local/repository/docker-hosted/dolorestec/${{ matrix.service }}:${{ needs.version-check.outputs.next-version }}
           echo "Testing $IMAGE"
           # Add service-specific tests here, e.g., for postgres: docker run --rm $IMAGE pg_isready -h localhost
           docker run --rm $IMAGE echo "Container started successfully"

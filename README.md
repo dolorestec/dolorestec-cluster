@@ -17,8 +17,50 @@ Este projeto configura uma stack completa de serviços para desenvolvimento e pr
 - 🐰 **RabbitMQ 4.0** - Message broker com management plugin
 - 🏃 **GitHub Runner** - CI/CD local com GitHub Actions
 - 🌐 **Traefik v3.1** - Reverse proxy moderno e load balancer
+- 📦 **Nexus Repository** - Gerenciamento de artefatos (Docker, NPM, PyPI)
 
 ## ✨ Características
+
+### 🛡️ Segurança e Conformidade
+- ✅ Imagens customizadas com prefixo padronizado
+- ✅ Usuários não-root para execução segura
+- ✅ Secrets management via variáveis de ambiente
+- ✅ Healthchecks automatizados
+- ✅ Rede isolada com Docker bridge
+- ✅ Volumes nomeados para persistência
+
+### 🚀 Performance e Escalabilidade
+- ⚡ Restart policies automáticas
+- 🔄 Dependências condicionais entre serviços
+- 📊 Monitoramento de saúde contínuo
+- 🏗️ Arquitetura preparada para produção
+
+### 🔧 DevOps e CI/CD
+- 🤖 GitHub Actions Runner oficial
+- 🐳 Build automatizado de imagens
+- 🔍 Security scanning integrado
+- 📦 SBOM e provenance para rastreabilidade
+- 🏭 Nexus para repositório de artefatos
+
+## 🔧 Configuração do Nexus
+
+### Secrets do GitHub
+Para usar o Nexus local como registry Docker, configure os seguintes secrets no repositório GitHub:
+
+- `NEXUS_USERNAME`: Usuário admin do Nexus
+- `NEXUS_PASSWORD`: Senha do usuário admin
+
+**Nota**: Para push local, o Docker pode precisar de configuração para aceitar registry inseguro se não usar HTTPS. Adicione ao `/etc/docker/daemon.json`:
+```json
+{
+  "insecure-registries": ["nexus.dolorestec.local"]
+}
+```
+
+### Exemplo de Workflow
+O CI principal (`main.yml`) já está configurado para usar a action com o Nexus local. Ele faz build e push automático de todas as imagens Docker para o registry local.
+
+## 🏗️ Arquitetura
 
 ### 🛡️ Segurança e Conformidade
 - ✅ Imagens customizadas com prefixo padronizado
@@ -47,9 +89,11 @@ graph TB
    A[Traefik Reverse Proxy] --> B[RabbitMQ Management]
    A --> C[PostgreSQL]
    A --> D[Redis]
+   A --> E[Nexus Repository]
    A --> F[Traefik Dashboard]
 
     K[GitHub Runner] --> L[CI/CD Pipeline]
+    L --> E
 ```
 
 ## 🚀 Início Rápido
