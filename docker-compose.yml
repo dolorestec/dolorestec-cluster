@@ -90,65 +90,6 @@ services:
       retries: 3
       start_period: 30s
 
-  docker-dind:
-    image: docker:dind
-    privileged: true
-    hostname: docker-dind
-    environment:
-      DOCKER_TLS_CERTDIR: /certs
-    volumes:
-      - docker-certs:/certs/client
-      - docker_data:/var/lib/docker
-    networks:
-      - dolorestec-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "docker", "info"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  github-runner:
-    build: ./docker/github-runner
-    image: dolorestec/github-runner:v0.1.0
-    env_file:
-      - .env
-    environment:
-      # Token used by the entrypoint to obtain a registration token from GitHub
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
-      # Repository owner/name used by the entrypoint's registration request
-      GITHUB_OWNER: ${GITHUB_OWNER}
-      GITHUB_REPOSITORY: ${GITHUB_REPOSITORY}
-      # Backwards-compatible vars (kept for reference)
-      RUNNER_TOKEN: ${GITHUB_RUNNER_TOKEN}
-      REPO_URL: ${REPO_URL}
-      RUNNER_NAME: dlrs-runner
-      RUNNER_WORKDIR: ${RUNNER_WORKDIR}
-      # Docker-in-Docker configuration
-      DOCKER_HOST: tcp://docker-dind:2376
-      DOCKER_TLS_VERIFY: 1
-      DOCKER_CERT_PATH: /certs/client
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    volumes:
-      - runner_data:/home/runner/actions-runner
-      - docker-certs:/certs/client:ro
-    depends_on:
-      - docker-dind
-    networks:
-      - dolorestec-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep -q Runner.Listener || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  # Nexus removed: using GitHub Packages / GHCR as registry
-
   traefik:
     build: ./docker/traefik
     image: dolorestec/traefik:v0.1.0    
@@ -188,10 +129,7 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
-  runner_data:
   traefik_data:
-  docker-certs:
-  docker_data:
 
 networks:
   dolorestec-network:
