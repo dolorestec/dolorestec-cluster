@@ -1,8 +1,34 @@
 #!/bin/bash
 set -e
 
-# Script de entrada para o GitHub Actions Runner
-echo "🚀 Iniciando GitHub Actions Runner..."
+# Entrypoint: roda como root (imagem final não troca para USER runner) para poder
+# ajustar permissões do socket do Docker do host e adicionar o usuário `runner`
+# ao grupo correspondente. Depois delega a execução do runner para o usuário
+# `runner` via runuser.
+
+echo "🚀 Iniciando GitHub Actions Runner (entrypoint rodando como root)..."
+
+# Se o socket do Docker estiver montado, detecte o GID do socket e crie um
+# grupo com esse GID para que possamos adicionar o usuário runner a ele.
+if [ -S /var/run/docker.sock ]; then
+  DOCKER_GID=$(stat -c '%g' /var/run/docker.sock 2>/dev/null || true)
+  if [ -n "$DOCKER_GID" ]; then
+    echo "🔧 Encontrado docker.sock com GID=$DOCKER_GID, assegurando grupo no container..."
+    if ! getent group docker >/dev/null 2>&1; then
+      groupadd -g "$DOCKER_GID" docker || true
+    fi
+    # Adicionar usuário runner ao grupo (criado ou já existente)
+    usermod -aG "$DOCKER_GID" runner 2>/dev/null || usermod -aG docker runner 2>/dev/null || true
+  fi
+fi
+
+# Preparar script temporário executado como usuário `runner`.
+RUNNER_SCRIPT=/tmp/runner-start.sh
+cat > "$RUNNER_SCRIPT" <<'EOS'
+#!/bin/bash
+set -e
+
+echo "🚀 Iniciando GitHub Actions Runner (processo do runner)..."
 
 # Verificar se GITHUB_TOKEN está definido
 if [ -n "$GITHUB_TOKEN" ]; then
@@ -37,7 +63,13 @@ else
     echo "⚠️  GITHUB_TOKEN não definido — pulando configuração."
 fi
 
-# Executar o runner
-echo "▶️  Iniciando runner..."
+echo "▶️  Iniciando runner (exec ./run.sh)..."
 cd /home/runner/actions-runner || true
 exec ./run.sh
+EOS
+
+chmod +x "$RUNNER_SCRIPT"
+chown runner:runner "$RUNNER_SCRIPT" || true
+
+# Executar o script como usuário runner (herda variáveis de ambiente)
+exec runuser -u runner -- "$RUNNER_SCRIPT"

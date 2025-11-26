@@ -45,7 +45,7 @@ LABEL maintainer="Dolorestec Team" \
 # evitar instalar o daemon é preferível — aqui usamos `docker.io` do Ubuntu para
 # fornecer o cliente CLI de forma simples e reprodutível.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates bash curl jq git docker.io && \
+    apt-get install -y --no-install-recommends ca-certificates bash curl jq git docker.io util-linux && \
     rm -rf /var/lib/apt/lists/*
 
 # Instalar docker compose (CLI plugin) e buildx plugin (binários oficiais)
@@ -77,8 +77,7 @@ RUN chmod +x /opt/runner-scripts/entrypoint.sh && chown runner:runner /opt/runne
 RUN if [ -x /home/runner/actions-runner/bin/installdependencies.sh ]; then \
             /home/runner/actions-runner/bin/installdependencies.sh; \
         fi
-# Não incluir tokens ou secrets no build — entrypoint deve lidar com registre do token via variável/secret
-USER runner
+
 
 # Definir ponto de entrada (mantemos o comportamento atual)
 ENTRYPOINT ["/opt/runner-scripts/entrypoint.sh"]
