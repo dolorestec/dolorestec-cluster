@@ -358,3 +358,4 @@ Observações de segurança:
 - Não exponha o Nexus sem TLS e autenticação em ambientes públicos.
 - Faça backup regular de `nexus_data`.
 
+# CI Test
