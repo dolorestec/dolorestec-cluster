@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Test container health
         run: |
-          IMAGE=nexus.dolorestec.local/repository/docker-hosted/dolorestec/${{ matrix.service }}:${{ needs.version-check.outputs.next-version }}
+          IMAGE=dlrs-nexus:8081/repository/docker-hosted/dolorestec/${{ matrix.service }}:${{ needs.version-check.outputs.next-version }}
           echo "Testing $IMAGE"
           # Add service-specific tests here, e.g., for postgres: docker run --rm $IMAGE pg_isready -h localhost
           docker run --rm $IMAGE echo "Container started successfully"

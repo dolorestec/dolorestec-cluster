@@ -26,8 +26,8 @@ runs:
   steps:
     - name: Login to Nexus registry
       run: |
-        echo "Logging into nexus.dolorestec.local/repository/docker-hosted"
-        echo "${{ inputs.password }}" | docker login nexus.dolorestec.local/repository/docker-hosted -u ${{ inputs.username }} --password-stdin
+        echo "Logging into dlrs-nexus:8081/repository/docker-hosted"
+        echo "${{ inputs.password }}" | docker login dlrs-nexus:8081/repository/docker-hosted -u ${{ inputs.username }} --password-stdin
       shell: bash
     - name: Build Docker image
       run: |
@@ -36,7 +36,7 @@ runs:
       shell: bash
     - name: Tag and push
       run: |
-        FULL_IMAGE=nexus.dolorestec.local/repository/docker-hosted/${{ inputs.image-name }}:${{ inputs.version }}
+        FULL_IMAGE=dlrs-nexus:8081/repository/docker-hosted/${{ inputs.image-name }}:${{ inputs.version }}
         docker tag ${{ inputs.image-name }}:${{ inputs.version }} $FULL_IMAGE
         docker push $FULL_IMAGE
         echo "Pushed to $FULL_IMAGE"

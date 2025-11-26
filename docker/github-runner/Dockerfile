@@ -9,6 +9,10 @@ RUN apt-get update && \
     apt-get install -y curl tar jq coreutils git docker.io && \
     rm -rf /var/lib/apt/lists/*
 
+# Configurar Docker para aceitar registries inseguras
+RUN mkdir -p /etc/docker && \
+    echo '{"insecure-registries": ["dlrs-nexus:8081", "nexus.dolorestec.local"]}' > /etc/docker/daemon.json
+
 # Criar usuário runner
 RUN useradd -m -s /bin/bash runner && \
     mkdir -p /home/runner/actions-runner && \

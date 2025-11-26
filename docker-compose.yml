@@ -108,8 +108,11 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    extra_hosts:
+      - "nexus.dolorestec.local:172.18.0.7"
     volumes:
-      - github_runner_data:/home/runner/actions-runner
+      - runner_data:/home/runner/actions-runner
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - dolorestec-network
     restart: unless-stopped
@@ -204,7 +207,7 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
-  github_runner_data:
+  runner_data:
   nexus_data:
   traefik_data:
 
