@@ -15,21 +15,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build image with Buildx (no push)
-        uses: docker/build-push-action@v4
-        with:
-          context: docker/${{ matrix.service }}
-          file: docker/${{ matrix.service }}/Dockerfile
-          platforms: linux/amd64
-          push: false
-          load: true
-          tags: dolorestec/${{ matrix.service }}:local
+      - name: Build image
+        run: |
+          echo "Building image for ${{ matrix.service }} using simple docker build"
+          sudo docker build -f docker/${{ matrix.service }}/Dockerfile -t dolorestec/${{ matrix.service }}:local docker/${{ matrix.service }}
 
       - name: Smoke test image
         run: |
@@ -39,21 +28,21 @@ jobs:
           case "$SERVICE" in
             postgres)
               # Best-effort: check pg_isready if available, otherwise run a quick echo
-              docker run --rm $IMAGE sh -c "if command -v pg_isready >/dev/null 2>&1; then pg_isready -h localhost || echo 'pg_isready failed'; else echo 'pg_isready not present, skipping'; fi" || true
+              sudo docker run --rm $IMAGE sh -c "if command -v pg_isready >/dev/null 2>&1; then pg_isready -h localhost || echo 'pg_isready failed'; else echo 'pg_isready not present, skipping'; fi" || true
               ;;
             redis)
-              docker run --rm $IMAGE sh -c "if command -v redis-cli >/dev/null 2>&1; then redis-cli ping || echo 'redis-cli ping failed'; else echo 'redis-cli not present, skipping'; fi" || true
+              sudo docker run --rm $IMAGE sh -c "if command -v redis-cli >/dev/null 2>&1; then redis-cli ping || echo 'redis-cli ping failed'; else echo 'redis-cli not present, skipping'; fi" || true
               ;;
             rabbitmq)
-              docker run --rm $IMAGE sh -c "if command -v rabbitmq-diagnostics >/dev/null 2>&1; then rabbitmq-diagnostics status || echo 'rabbitmq-diagnostics failed'; else echo 'rabbitmq-diagnostics not present, skipping'; fi" || true
+              sudo docker run --rm $IMAGE sh -c "if command -v rabbitmq-diagnostics >/dev/null 2>&1; then rabbitmq-diagnostics status || echo 'rabbitmq-diagnostics failed'; else echo 'rabbitmq-diagnostics not present, skipping'; fi" || true
               ;;
             traefik)
-              docker run --rm $IMAGE sh -c "if command -v traefik >/dev/null 2>&1; then traefik version || echo 'traefik version check failed'; else echo 'traefik binary not present, skipping'; fi" || true
+              sudo docker run --rm $IMAGE sh -c "if command -v traefik >/dev/null 2>&1; then traefik version || echo 'traefik version check failed'; else echo 'traefik binary not present, skipping'; fi" || true
               ;;
             github-runner)
-              docker run --rm $IMAGE sh -c "echo 'runner image built'" || true
+              sudo docker run --rm $IMAGE sh -c "echo 'runner image built'" || true
               ;;
             *)
-              docker run --rm $IMAGE echo "Container started successfully" || true
+              sudo docker run --rm $IMAGE echo "Container started successfully" || true
               ;;
           esac
