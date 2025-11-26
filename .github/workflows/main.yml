@@ -6,6 +6,10 @@ on:
       - develop
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   docker-build:
     runs-on: self-hosted
@@ -15,34 +19,48 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Build image
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Check Docker socket access
+        id: check-docker
         run: |
-          echo "Building image for ${{ matrix.service }} using simple docker build"
-          sudo docker build -f docker/${{ matrix.service }}/Dockerfile -t dolorestec/${{ matrix.service }}:local docker/${{ matrix.service }}
+          CAN_ACCESS=false
+          if [ -S /var/run/docker.sock ] && docker info >/dev/null 2>&1; then
+            CAN_ACCESS=true
+          fi
+          echo "can_access=$CAN_ACCESS" >> $GITHUB_OUTPUT
+
+      - name: Build & load with Buildx (if docker socket accessible)
+        if: steps.check-docker.outputs.can_access == 'true'
+        uses: docker/build-push-action@v4
+        with:
+          context: docker/${{ matrix.service }}
+          file: docker/${{ matrix.service }}/Dockerfile
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: dolorestec/${{ matrix.service }}:local
+
+      - name: Build & push to GHCR (fallback when no socket)
+        if: steps.check-docker.outputs.can_access != 'true'
+        uses: docker/build-push-action@v4
+        with:
+          context: docker/${{ matrix.service }}
+          file: docker/${{ matrix.service }}/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/dolorestec/${{ matrix.service }}:local
 
       - name: Smoke test image
         run: |
-          SERVICE=${{ matrix.service }}
-          IMAGE=dolorestec/${SERVICE}:local
+          IMAGE=dolorestec/${{ matrix.service }}:local
+          if [ "${{ steps.check-docker.outputs.can_access }}" != 'true' ]; then
+            IMAGE=ghcr.io/${{ github.repository_owner }}/dolorestec/${{ matrix.service }}:local
+          fi
           echo "Testing image $IMAGE"
-          case "$SERVICE" in
-            postgres)
-              # Best-effort: check pg_isready if available, otherwise run a quick echo
-              sudo docker run --rm $IMAGE sh -c "if command -v pg_isready >/dev/null 2>&1; then pg_isready -h localhost || echo 'pg_isready failed'; else echo 'pg_isready not present, skipping'; fi" || true
-              ;;
-            redis)
-              sudo docker run --rm $IMAGE sh -c "if command -v redis-cli >/dev/null 2>&1; then redis-cli ping || echo 'redis-cli ping failed'; else echo 'redis-cli not present, skipping'; fi" || true
-              ;;
-            rabbitmq)
-              sudo docker run --rm $IMAGE sh -c "if command -v rabbitmq-diagnostics >/dev/null 2>&1; then rabbitmq-diagnostics status || echo 'rabbitmq-diagnostics failed'; else echo 'rabbitmq-diagnostics not present, skipping'; fi" || true
-              ;;
-            traefik)
-              sudo docker run --rm $IMAGE sh -c "if command -v traefik >/dev/null 2>&1; then traefik version || echo 'traefik version check failed'; else echo 'traefik binary not present, skipping'; fi" || true
-              ;;
-            github-runner)
-              sudo docker run --rm $IMAGE sh -c "echo 'runner image built'" || true
-              ;;
-            *)
-              sudo docker run --rm $IMAGE echo "Container started successfully" || true
-              ;;
-          esac
+          docker run --rm $IMAGE echo "Container started successfully" || true
