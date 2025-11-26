@@ -2,7 +2,6 @@ services:
   postgres:
     build: ./docker/postgres
     image: dolorestec/postgres:v0.1.0
-    container_name: dlrs-postgres
     env_file:
       - .env
     volumes:
@@ -32,8 +31,6 @@ services:
   redis:
     build: ./docker/redis
     image: dolorestec/redis:v0.1.0
-    container_name: dlrs-redis
-    privileged: true
     env_file:
       - .env
     volumes:
@@ -63,7 +60,6 @@ services:
   rabbitmq:
     build: ./docker/rabbitmq
     image: dolorestec/rabbitmq:v0.1.0
-    container_name: dlrs-rabbitmq
     env_file:
       - .env
     environment:
@@ -97,7 +93,6 @@ services:
   github-runner:
     build: ./docker/github-runner
     image: dolorestec/github-runner:v0.1.0
-    container_name: dlrs-runner
     env_file:
       - .env
     environment:
@@ -126,18 +121,7 @@ services:
 
   traefik:
     build: ./docker/traefik
-    image: dolorestec/traefik:v0.1.0
-    container_name: dlrs-traefik
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      github-runner:
-        condition: service_healthy
-    
+    image: dolorestec/traefik:v0.1.0    
     command:
       - "--api.insecure=true"
       - "--entrypoints.web.address=:80"
