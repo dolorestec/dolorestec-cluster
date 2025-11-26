@@ -93,6 +93,7 @@ services:
   docker-dind:
     image: docker:dind
     privileged: true
+    hostname: docker-dind
     environment:
       DOCKER_TLS_CERTDIR: /certs
     volumes:

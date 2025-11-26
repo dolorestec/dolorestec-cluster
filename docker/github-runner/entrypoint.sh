@@ -19,9 +19,7 @@ if [ -n "$GITHUB_TOKEN" ]; then
     REGISTRATION_TOKEN=$(curl -s -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
-        https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPOSITORY/actions/runners/registration-token)
-    REGISTRATION_TOKEN=$(echo "$REGISTRATION_TOKEN" | jq -r .token)
-    echo "Extracted token: $REGISTRATION_TOKEN"
+        https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPOSITORY/actions/runners/registration-token | jq -r .token)
     
     if [ "$REGISTRATION_TOKEN" = "null" ] || [ -z "$REGISTRATION_TOKEN" ]; then
         echo "❌ Falha ao obter token de registro. Verifique GITHUB_TOKEN e permissões."
